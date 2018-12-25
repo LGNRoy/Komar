@@ -45,21 +45,29 @@ class BatchGenerator(object):
             return output
         
 def read_csv(filename):
+    # with open(filename, 'r') as f:
+    #     lines = [ln.strip().split(",")[-7:-3] for ln in f.readlines()]
+    #     lines = map(lambda x: (x[0], np.float32(x[1:])), lines) # imagefile, outputs
+    #     return lines
     with open(filename, 'r') as f:
-        lines = [ln.strip().split(",")[-7:-3] for ln in f.readlines()]
-        lines = map(lambda x: (x[0], np.float32(x[1:])), lines) # imagefile, outputs
+        ## !!! 这个地方变成全取,并去除title
+        lines = [ln.strip().split(",") for ln in f.readlines()][1:] 
+        lines = map(lambda x: (x[0], np.longdouble(x[1:])), lines) # imagefile, outputs
         return lines
 
 def process_csv(filename, val=5):
-    sum_f = np.float128([0.0] * OUTPUT_DIM)
-    sum_sq_f = np.float128([0.0] * OUTPUT_DIM)
+    # 为了避免错误, 把float128改成了长整型
+    # sum_f = np.float128([0.0] * OUTPUT_DIM)
+    # sum_sq_f = np.float128([0.0] * OUTPUT_DIM)
+    sum_f = np.longdouble([0.0] * OUTPUT_DIM)
+    sum_sq_f = np.longdouble([0.0] * OUTPUT_DIM)
     lines = read_csv(filename)
     # leave val% for validation
     train_seq = []
     valid_seq = []
     cnt = 0
     for ln in lines:
-        if cnt < SEQ_LEN * BATCH_SIZE * (100 - val): 
+        if (cnt < SEQ_LEN * BATCH_SIZE * (100 - val)): 
             train_seq.append(ln)
             sum_f += ln[1]
             sum_sq_f += ln[1] * ln[1]
@@ -70,6 +78,6 @@ def process_csv(filename, val=5):
     mean = sum_f / len(train_seq)
     var = sum_sq_f / len(train_seq) - mean * mean
     std = np.sqrt(var)
-    print(len(train_seq), len(valid_seq))
-    print(mean, std) # we will need these statistics to normalize the outputs (and ground truth inputs)
+    print("train len: {}, test len: {}".format(len(train_seq), len(valid_seq)))
+    print("mean: {}, std: {}".format(mean, std)) # we will need these statistics to normalize the outputs (and ground truth inputs)
     return (train_seq, valid_seq), (mean, std)

@@ -38,4 +38,4 @@ OUTPUT_DIM = len(OUTPUTS) # predict all features: steering angle, torque and veh
 
 # 这个CSV的名字和项目同目录下的csv有些不一样
 # test_seq = read_csv("challenge_2/exampleSubmissionInterpolatedFinal.csv") # interpolated.csv for testset filled with dummy values 
-test_seq = read_csv("exampleSubmissionFinal.csv")
+# test_seq = read_csv("exampleSubmissionFinal.csv")
