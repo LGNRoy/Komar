@@ -78,6 +78,6 @@ def process_csv(filename, val=5):
     mean = sum_f / len(train_seq)
     var = sum_sq_f / len(train_seq) - mean * mean
     std = np.sqrt(var)
-    print("train len: {}, test len: {}".format(len(train_seq), len(valid_seq)))
+    print("train len: {}, valid len: {}".format(len(train_seq), len(valid_seq)))
     print("mean: {}, std: {}".format(mean, std)) # we will need these statistics to normalize the outputs (and ground truth inputs)
     return (train_seq, valid_seq), (mean, std)
