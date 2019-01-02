@@ -67,6 +67,7 @@ def read_csv(filename):
         return lines
 
 def process_csv(filename, val=5):
+    print("-------process csv-------")
     # 为了避免错误, 把float128改成了长整型
     # sum_f = np.float128([0.0] * OUTPUT_DIM)
     # sum_sq_f = np.float128([0.0] * OUTPUT_DIM)
@@ -91,4 +92,14 @@ def process_csv(filename, val=5):
     std = np.sqrt(var)
     print("train len: {}, valid len: {}".format(len(train_seq), len(valid_seq)))
     print("mean: {}, std: {}".format(mean, std)) # we will need these statistics to normalize the outputs (and ground truth inputs)
+    print("_________________________")
     return (train_seq, valid_seq), (mean, std)
+
+def test_csv(filename):
+    print("--------test csv---------")
+    lines =  read_csv(filename)
+    test_seq = []
+    for ln in lines:
+        test_seq.append(ln)
+    print("_________________________")
+    return test_seq
