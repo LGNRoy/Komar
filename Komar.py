@@ -60,8 +60,8 @@ with graph.as_default():
     targets = tf.placeholder(shape=(BATCH_SIZE,SEQ_LEN,OUTPUT_DIM), dtype=tf.float32) # seq_len x batch_size x OUTPUT_DIM
     targets_normalized = (targets - mean) / std
     
-    input_images = tf.pack([tf.image.decode_png(tf.read_file(x))
-                            for x in tf.unpack(tf.reshape(inputs, shape=[(LEFT_CONTEXT+SEQ_LEN) * BATCH_SIZE]))])
+    input_images = tf.stack([tf.image.decode_png(tf.read_file(x))
+                            for x in tf.unstack(tf.reshape(inputs, shape=[(LEFT_CONTEXT+SEQ_LEN) * BATCH_SIZE]))])
     input_images = -1.0 + 2.0 * tf.cast(input_images, tf.float32) / 255.0
     input_images.set_shape([(LEFT_CONTEXT+SEQ_LEN) * BATCH_SIZE, HEIGHT, WIDTH, CHANNELS])
     visual_conditions_reshaped = apply_vision_simple(image=input_images, keep_prob=keep_prob, 
@@ -77,17 +77,17 @@ with graph.as_default():
     cell_autoregressive = SamplingRNNCell(num_outputs=OUTPUT_DIM, use_ground_truth=False, internal_cell=internal_cell)
     
     def get_initial_state(complex_state_tuple_sizes):
-        flat_sizes = tf.nn.rnn_cell.nest.flatten(complex_state_tuple_sizes)
+        flat_sizes = tf.contrib.framework.nest.flatten(complex_state_tuple_sizes)
         init_state_flat = [tf.tile(
             multiples=[BATCH_SIZE, 1], 
             input=tf.get_variable("controller_initial_state_%d" % i, initializer=tf.zeros_initializer, shape=([1, s]), dtype=tf.float32))
          for i,s in enumerate(flat_sizes)]
-        init_state = tf.nn.rnn_cell.nest.pack_sequence_as(complex_state_tuple_sizes, init_state_flat)
+        init_state = tf.contrib.framework.nest.pack_sequence_as(complex_state_tuple_sizes, init_state_flat)
         return init_state
     def deep_copy_initial_state(complex_state_tuple):
-        flat_state = tf.nn.rnn_cell.nest.flatten(complex_state_tuple)
+        flat_state = tf.contrib.framework.nest.flatten(complex_state_tuple)
         flat_copy = [tf.identity(s) for s in flat_state]
-        deep_copy = tf.nn.rnn_cell.nest.pack_sequence_as(complex_state_tuple, flat_copy)
+        deep_copy = tf.contrib.framework.nest.pack_sequence_as(complex_state_tuple, flat_copy)
         return deep_copy
     
     controller_initial_state_variables = get_initial_state(cell_autoregressive.state_size)
@@ -112,13 +112,13 @@ with graph.as_default():
     
     optimizer = get_optimizer(total_loss, learning_rate)
 
-    tf.scalar_summary("MAIN TRAIN METRIC: rmse_autoregressive_steering", tf.sqrt(mse_autoregressive_steering))
-    tf.scalar_summary("rmse_gt", tf.sqrt(mse_gt))
-    tf.scalar_summary("rmse_autoregressive", tf.sqrt(mse_autoregressive))
+    tf.summary.scalar("MAIN TRAIN METRIC: rmse_autoregressive_steering", tf.sqrt(mse_autoregressive_steering))
+    tf.summary.scalar("rmse_gt", tf.sqrt(mse_gt))
+    tf.summary.scalar("rmse_autoregressive", tf.sqrt(mse_autoregressive))
     
-    summaries = tf.merge_all_summaries()
-    train_writer = tf.train.SummaryWriter('v3/train_summary', graph=graph)
-    valid_writer = tf.train.SummaryWriter('v3/valid_summary', graph=graph)
+    summaries = tf.summary.merge_all()
+    train_writer = tf.train.FileWriter('v3/train_summary', graph=graph)
+    valid_writer = tf.train.FileWriter('v3/valid_summary', graph=graph)
     saver = tf.train.Saver(write_version=tf.train.SaverDef.V2)
 # ——————————————————————————————————————————————
 
