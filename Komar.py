@@ -32,18 +32,28 @@ CSV_HEADER = "index,timestamp,width,height,frame_id,filename,angle,torque,speed,
 OUTPUTS = CSV_HEADER[-6:-3] # angle,torque,speed
 OUTPUT_DIM = len(OUTPUTS) # predict all features: steering angle, torque and vehicle speed
 
+pre_path="../udacity-driving-reader/output"
+pre_full_path="/home/sway007/git-repos/udacity-driving-reader/output/HMB6/steering.csv"
+now_path="~/git-repos/komar"
 
+loacl_camera_path = "E:/udacity-baseline/HMB6/camera.csv"
+loacl_steering_path = "E:/udacity-baseline/HMB6/steering.csv"
+
+loacl_tests_path = "E:/udacity-baseline/testing-data/camera.csv"
+loacl_result_path = "E:/udacity-baseline/testing-data/ch2_final_eval.csv"
 
 # 读SCV
 # 这个CSV和我们用的也有些不一样, 替换成了格式相同的CSV
 # 用HMB6的steering做的测试
-# 这个程序是直接把这个数据集分成train和valid，所以这个valid是干啥的来着
 # (train_seq, valid_seq), (mean, std) = process_csv(filename="output/interpolated_concat.csv", val=5) # concatenated interpolated.csv from rosbags 
-(train_seq, valid_seq), (mean, std) = process_csv(filename="steering.csv", val=5)
+# 在能跑之前,暂且使用HMB6代替全部数据
+(train_seq, valid_seq), (mean, std) = process_csv(loacl_camera_path, loacl_steering_path, val=5)
 
 # 这个CSV的名字和项目同目录下的csv有些不一样
 # test_seq = read_csv("challenge_2/exampleSubmissionInterpolatedFinal.csv") # interpolated.csv for testset filled with dummy values 
-test_seq = read_csv("exampleSubmissionFinal.csv")
+# test_seq = test_csv("/home/sway007/git-repos/udacity-driving-reader/output/testing/steering.csv")
+test_seq = read_csv_dou(loacl_tests_path, loacl_result_path)
+
 # ——————————————————————————————————————————————
 
 

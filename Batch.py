@@ -66,14 +66,85 @@ def read_csv(filename):
         lines = map(lambda x: (x[0], np.longdouble(x[1:])), lines) # imagefile, outputs
         return lines
 
-def process_csv(filename, val=5):
+def read_csv_dou(camera_file, steering_file, difference = 10000000):
+    camera = []
+    with open(camera_file, 'r') as f:
+        for ln in f.readlines():
+            cells = ln.strip().split(",")
+            if(cells[3]=="center_camera"):
+                camera.append(cells)
+        # print('----------------------------camera------------------------------') 
+        # print(camera[:5])
+        # print(len(camera))
+    
+    steering = []
+    with open(steering_file, 'r') as f:
+        steering = [ln.strip().split(",") for ln in f.readlines()][1:]
+        # print('--------------------------steering------------------------------') 
+        # print(steering[:5])
+        # print(len(steering))
+
+    result = []
+    i_camera = 0
+    i_steering = 0
+    while(i_camera < len(camera) and i_steering < len(steering)):
+        line_camera = camera[i_camera]
+        line_steering = steering[i_steering]
+        if(abs(int(line_steering[0]) - int(line_camera[0])) <= difference):
+            line = line_camera[-1:] + line_steering[1:2]
+            result.append(line)
+            i_camera += 1
+            i_steering += 1
+        else:
+            if(line_steering[0] < line_camera[0]):
+                i_steering += 1
+            else:
+                i_camera += 1
+    # print('----------------------------result------------------------------') 
+    # print(result[:5])
+    # print(len(result))
+    # print('i_camera: {}'.format(i_camera))
+    # print('i_steering: {}'.format(i_steering))
+    result = map(lambda x: (x[0], np.longdouble(x[1:])), result) # imagefile, outputs
+    return result    
+
+# def process_csv(filename, val=5):
+#     print("-------process csv-------")
+#     # 为了避免错误, 把float128改成了长整型
+#     # sum_f = np.float128([0.0] * OUTPUT_DIM)
+#     # sum_sq_f = np.float128([0.0] * OUTPUT_DIM)
+#     sum_f = np.longdouble([0.0] * OUTPUT_DIM)
+#     sum_sq_f = np.longdouble([0.0] * OUTPUT_DIM)
+#     lines = read_csv(filename)
+#     # leave val% for validation
+#     train_seq = []
+#     valid_seq = []
+#     cnt = 0
+#     for ln in lines:
+#         if (cnt < SEQ_LEN * BATCH_SIZE * (100 - val)): 
+#             train_seq.append(ln)
+#             sum_f += ln[1]
+#             sum_sq_f += ln[1] * ln[1]
+#         else:
+#             valid_seq.append(ln)
+#         cnt += 1
+#         cnt %= SEQ_LEN * BATCH_SIZE * 100
+#     mean = sum_f / len(train_seq)
+#     var = sum_sq_f / len(train_seq) - mean * mean
+#     std = np.sqrt(var)
+#     print("train len: {}, valid len: {}".format(len(train_seq), len(valid_seq)))
+#     print("mean: {}, std: {}".format(mean, std)) # we will need these statistics to normalize the outputs (and ground truth inputs)
+#     print("_________________________")
+#     return (train_seq, valid_seq), (mean, std)
+
+def process_csv(camera_file, steering_file, val=5):
     print("-------process csv-------")
     # 为了避免错误, 把float128改成了长整型
     # sum_f = np.float128([0.0] * OUTPUT_DIM)
     # sum_sq_f = np.float128([0.0] * OUTPUT_DIM)
     sum_f = np.longdouble([0.0] * OUTPUT_DIM)
     sum_sq_f = np.longdouble([0.0] * OUTPUT_DIM)
-    lines = read_csv(filename)
+    lines = read_csv_dou(camera_file, steering_file)
     # leave val% for validation
     train_seq = []
     valid_seq = []
@@ -95,11 +166,12 @@ def process_csv(filename, val=5):
     print("_________________________")
     return (train_seq, valid_seq), (mean, std)
 
-def test_csv(filename):
-    print("--------test csv---------")
-    lines =  read_csv(filename)
-    test_seq = []
-    for ln in lines:
-        test_seq.append(ln)
-    print("_________________________")
-    return test_seq
+# def test_csv(filename):
+#     print("--------test csv---------")
+#     lines =  read_csv(filename)
+#     test_seq = []
+#     for ln in lines:
+#         test_seq.append(ln)
+#     print("test len: {}".format(len(test_seq)))
+#     print("_________________________")
+#     return test_seq
